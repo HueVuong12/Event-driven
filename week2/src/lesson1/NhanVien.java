@@ -42,14 +42,15 @@ public class NhanVien implements Serializable {
 	public void setLuong(double luong) {
 		Luong = luong;
 	}
-	public NhanVien(String maNV) {
+	public NhanVien(String maNV, String hoNV, String tenNV, String phai, int tuoi, double luong) {
 		super();
 		this.maNV = maNV;
 		this.hoNV = hoNV;
 		this.tenNV = tenNV;
 		this.phai = phai;
 		this.tuoi = tuoi;
-//		Luong = luong;
+		Luong = luong;
 	}
+
 	
 }

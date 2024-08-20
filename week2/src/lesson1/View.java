@@ -5,9 +5,15 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -30,7 +36,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 
-public class View extends JFrame {
+public class View extends JFrame implements ActionListener, MouseListener {
 	private JLabel lblTitle;
 	private JLabel lblMaNV, lblHo, lblTenNV, lblTuoi, lblLuong, lblPhai, lblMaTim;
 	private Color foreground;
@@ -39,12 +45,14 @@ public class View extends JFrame {
 	DefaultTableModel model;
 	private JTable tblNV;
 	private JButton btnThem, btnXoaTrang, btnXoa, btnLuu, btnTim;
+	private List<NhanVien> dsNV;
 
 	public View() throws HeadlessException {
 		this.gui();
 	}
 
 	public void gui() {
+		dsNV = new ArrayList<NhanVien>();
 		Font font = new Font("Arial", Font.BOLD, 30);
 
 		lblTitle = new JLabel("THÔNG TIN NHÂN VIÊN");
@@ -69,7 +77,7 @@ public class View extends JFrame {
 		txtTen = new JTextField();
 		txtTuoi = new JTextField();
 		txtLuong = new JTextField();
-		txtMaTim = new JTextField();
+		txtMaTim = new JTextField(9);
 
 		ButtonGroup buttonGroup = new ButtonGroup();
 
@@ -125,9 +133,11 @@ public class View extends JFrame {
 		jPanel_TimKiem.setLayout(new FlowLayout());
 		JPanel jPanel_ChucNang = new JPanel();
 		jPanel_ChucNang.setLayout(new FlowLayout());
-		
+
 		jSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, jPanel_TimKiem, jPanel_ChucNang);
 
+//		jPanel_TimKiem.setLayout(new FlowLayout());
+//		jPanel_ChucNang.setLayout(new FlowLayout());
 		jPanel_TimKiem.add(lblMaTim);
 		jPanel_TimKiem.add(txtMaTim);
 		jPanel_TimKiem.add(btnTim);
@@ -140,7 +150,7 @@ public class View extends JFrame {
 		Border cnborder = BorderFactory.createLineBorder(Color.gray);
 
 		this.setTitle("^-^");
-		this.setSize(500, 500);
+		this.setSize(700, 500);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		this.setVisible(true);
@@ -148,26 +158,24 @@ public class View extends JFrame {
 		this.add(b, BorderLayout.NORTH);
 		this.add(jSplitPane, BorderLayout.SOUTH);
 
+		btnThem.addActionListener(this);
+		btnLuu.addActionListener(this);
+		btnTim.addActionListener(this);
+		btnXoa.addActionListener(this);
+		btnXoaTrang.addActionListener(this);
+		radioNam.addActionListener(this);
+		radioNu.addActionListener(this);
+
 		taobang();
-
-		btnXoaTrang.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				txtMaNV.setText("");
-				txtHo.setText("");
-				txtTen.setText("");
-				txtTuoi.setText("");
-				txtLuong.setText("");
-			}
-		});
-
 		btnThem.addActionListener(new ActionListener() {
-
+//tìm hiểu thêm về chỗ này
+//			
+//			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (txtHo.getText().equals("") || txtMaNV.getText().equals("") || txtTen.getText().equals("")
-						|| txtTuoi.getText().equals("") || txtLuong.getText().equals("")) {
+						|| txtTuoi.getText().equals("") || txtLuong.getText().equals("")
+						|| (!radioNam.isSelected() && !radioNu.isSelected())) {
 					JOptionPane.showMessageDialog(btnThem, "Vui lòng nhập đủ dữ liệu", "Thông báo",
 							JOptionPane.ERROR_MESSAGE);
 				} else {
@@ -175,32 +183,90 @@ public class View extends JFrame {
 					src[0] = txtMaNV.getText();
 					src[1] = txtHo.getText();
 					src[2] = txtTen.getText();
+//					
+					if (radioNam.isSelected())
+						src[3] = "Nam";
+					else if (radioNu.isSelected())
+						src[3] = "Nữ";
+//					
 					src[4] = txtTuoi.getText();
 					src[5] = txtLuong.getText();
+
+//					if(!dsNV.themnv)
 					model.addRow(src);
+
+//					String maNV, String hoNV, String tenNV, String phai, int tuoi, double luong
+					String maNV = txtMaNV.getText();
+					String maHo = txtHo.getText();
+
+					String maTen = txtTen.getText();
+					String phai = "Nu";
+//					chuyển từ string sang int
+					int maTuoi = Integer.parseInt(txtTuoi.getText());
+					Double Luong = Double.parseDouble(txtLuong.getText());
+
+					NhanVien nv = new NhanVien(maNV, maHo, maTen, phai, maTuoi, Luong);
+					dsNV.add(nv);
 				}
 			}
 		});
+//		btnXoaTrang.addActionListener(new ActionListener() {
+//
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				txtMaNV.setText("");
+//				txtHo.setText("");
+//				txtTen.setText("");
+//				txtTuoi.setText("");
+//				txtLuong.setText("");
+//			}
+//		});
 
-		btnXoa.addActionListener(new ActionListener() {
+//		btnXoa.addActionListener(new ActionListener() {
+//
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (tblNV.getSelectedRow() == -1) {
+//					JOptionPane.showMessageDialog(btnXoa, "Vui lòng chọn dòng để xóa", "Thông báo",
+//							JOptionPane.INFORMATION_MESSAGE);
+//				} else {
+//					if (JOptionPane.showConfirmDialog(btnXoa, "Bạn có chắc chắn không", "Thông báo",
+//							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+//						model.removeRow(tblNV.getSelectedRow());
+//				}
+//			}
+//		});
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (tblNV.getSelectedRow() == -1) {
-					JOptionPane.showMessageDialog(btnXoa, "Vui lòng chọn dòng để xóa", "Thông báo",
-							JOptionPane.INFORMATION_MESSAGE);
-				} else {
-					if (JOptionPane.showConfirmDialog(btnXoa, "Bạn có chắc chắn không", "Thông báo",
-							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
-						model.removeRow(tblNV.getSelectedRow());
-				}
-			}
-		});
-		
 		btnLuu.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
+
+			}
+		});
+
+//		tìm hiểu thêm về chỗ này
+//		
+//		
+		btnTim.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String maCanTim = txtMaTim.getText();
+				boolean found = false;
+				for (NhanVien nv : dsNV) {
+					if (maCanTim.equals(nv.getMaNV())) {
+						int i = dsNV.indexOf(nv);
+						JOptionPane.showMessageDialog(btnTim, "Đã tìm thấy tại vị trí " + i);
+						tblNV.setRowSelectionInterval(i, i);
+						found = true;
+						break;
+					}
+					
+				}
+				if (!found) {
+					JOptionPane.showMessageDialog(btnTim, "Không tìm thấy");
+				}
 				
 			}
 		});
@@ -237,4 +303,82 @@ public class View extends JFrame {
 	public static void main(String[] args) {
 		new View();
 	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		Object o = e.getSource();
+		if (o.equals(btnThem)) {
+//			String ma = txtMaNV.getText();
+//			String ho = txtHo.getText();
+//			String ten = txtTen.getText();
+//			int tuoi = Integer.parseInt(txtTuoi.getText());
+////			boolean phai = radioNu.isSelected();
+//			double luong = Double.parseDouble(txtLuong.getText());
+
+//			NhanVien nv = new NhanVien(ma, ho, ten, tuoi, luong);
+
+//			if (txtHo.getText().equals("") || txtMaNV.getText().equals("") || txtTen.getText().equals("")
+//					|| txtTuoi.getText().equals("") || txtLuong.getText().equals("")) {
+//				JOptionPane.showMessageDialog(btnThem, "Vui lòng nhập đủ dữ liệu", "Thông báo",
+//						JOptionPane.ERROR_MESSAGE);
+//			} else {
+//				String[] src = new String[6];
+//				src[0] = txtMaNV.getText();
+//				src[1] = txtHo.getText();
+//				src[2] = txtTen.getText();
+////				src[3] = 
+//				src[4] = txtTuoi.getText();
+//				src[5] = txtLuong.getText();
+//
+//				model.addRow(src);
+////				model.addRow(new Object[] { nv.getMaNV(), nv.getHoNV(), nv.getTenNV(), nv.getTuoi(), nv.getLuong() });
+//			}
+		} else if (o.equals(btnXoa)) {
+			if (tblNV.getSelectedRow() == -1) {
+				JOptionPane.showMessageDialog(btnXoa, "Vui lòng chọn dòng để xóa", "Thông báo",
+						JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				if (JOptionPane.showConfirmDialog(btnXoa, "Bạn có chắc chắn không", "Thông báo",
+						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)
+					model.removeRow(tblNV.getSelectedRow());
+			}
+		} else if (o.equals(btnXoaTrang)) {
+			txtMaNV.setText("");
+			txtHo.setText("");
+			txtTen.setText("");
+			txtTuoi.setText("");
+			txtLuong.setText("");
+		}
+
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+//		int row = table.gets
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
 }
